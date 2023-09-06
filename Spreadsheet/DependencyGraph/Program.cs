@@ -1,6 +1,8 @@
 ﻿// Skeleton implementation by: Joe Zachary, Daniel Kopta, Travis Martin for CS 3500
 // Last updated: August 2023 (small tweak to API)
 
+using System;
+
 namespace SpreadsheetUtilities;
 
 /// <summary>
@@ -32,11 +34,19 @@ namespace SpreadsheetUtilities;
 /// </summary>
 public class DependencyGraph
 {
+
+    private Dictionary<string, HashSet<string>> dependent_graph, dependee_graph;
+
+    private int dependencyGraphSize;
+
     /// <summary>
     /// Creates an empty DependencyGraph.
     /// </summary>
     public DependencyGraph()
     {
+        dependent_graph = new Dictionary<string, HashSet<string>>();
+        dependee_graph = new Dictionary<string, HashSet<string>>();
+        int dependencyGraphSize;
     }
 
 
@@ -108,7 +118,7 @@ public class DependencyGraph
     /// <param name="t"> t cannot be evaluated until s is</param>
     public void AddDependency(string s, string t)
     {
-        /// write your code here
+        
     }
 
 
