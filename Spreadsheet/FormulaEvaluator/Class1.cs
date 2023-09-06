@@ -1,7 +1,9 @@
 ﻿namespace FormulaEvaluator;
 
-public static class Evaluator
+public delegate int Lookup(String v);
+
+public static int Evaluate(String exp, Lookup variableEvaluator)
 {
-    // TODO: Follow the PS1 instructions
+    string[] substrings = Regex.Split(s, "(\\() | (\\))| (-) | (\\+)| (\\*)| (/)");
 }
 

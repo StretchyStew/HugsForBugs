@@ -8,8 +8,8 @@
     <Pads>
       <Pad Id="ProjectPad">
         <State name="__root__">
-          <Node name="Spreadsheet">
-            <Node name="FormulaEvaluator">
+          <Node name="Spreadsheet" expanded="True">
+            <Node name="FormulaEvaluator" expanded="True">
               <Node name="Class1.cs" selected="True" />
             </Node>
           </Node>
