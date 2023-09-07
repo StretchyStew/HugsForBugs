@@ -150,6 +150,11 @@ public class DependencyGraph
     /// <param name="t"> t cannot be evaluated until s is</param>
     public void AddDependency(string s, string t)
     {
+        //Adds one to the count if dependent graph doesn't have the key 's' and dependee graph doesn't contain key 't'.
+        if (!dependent_graph.ContainsKey(s) && dependee_graph.ContainsKey(t))
+        {
+            dependencyGraphSize++;
+        }
         //if 's' is already in dependents, then it will just add it to the existing HashSet.
         if (dependent_graph.ContainsKey(s))
         {
