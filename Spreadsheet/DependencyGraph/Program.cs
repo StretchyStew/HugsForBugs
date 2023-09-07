@@ -47,7 +47,7 @@ public class DependencyGraph
     {
         dependent_graph = new Dictionary<string, HashSet<string>>();
         dependee_graph = new Dictionary<string, HashSet<string>>();
-        int dependencyGraphSize;
+        int dependencyGraphSize = 0;
     }
 
 
@@ -189,6 +189,31 @@ public class DependencyGraph
     /// <param name="t"></param>
     public void RemoveDependency(string s, string t)
     {
+        //if dependent and dependee graph contain s and t, then this will subtract 1 from the graph size.
+        if (dependent_graph.ContainsKey(s) && dependee_graph.ContainsKey(t))
+        {
+            dependencyGraphSize--;
+        }
+        //if dependee graph contains 's', then it will remove t (dependents), once all the values are removed,
+        //then it will finally remove s (dependee).
+        while (dependee_graph.ContainsKey(s))
+        {
+            dependee_graph.Remove(t);
+            if (dependee_graph[s].Count() == 0)
+            {
+                dependee_graph.Remove(s);
+            }
+        }
+        //if the dependent graph contains 't', then it will remove s (dependee), once all the values are removed,
+        //then it will finally remove t (dependent).
+        while (dependent_graph.ContainsKey(t))
+        {
+            dependent_graph.Remove(s);
+            if (dependent_graph[t].Count() == 0)
+            {
+                dependee_graph.Remove(t);
+            }
+        }
     }
 
 
