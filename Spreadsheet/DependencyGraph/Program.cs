@@ -149,7 +149,18 @@ public class DependencyGraph
     /// <param name="t"> t cannot be evaluated until s is</param>
     public void AddDependency(string s, string t)
     {
-        
+        //if 's' is already in dependents, then it will just add it
+        if (dependent_graph.ContainsKey(s))
+        {
+            dependee_graph[s].Add(t);
+        }
+        //if 's' ins't in dependents, then this will create a new HashSet for the dependee and assign it to t.
+        else
+        {
+            HashSet<string> dependent = new HashSet<string>();
+            dependent.Add(s);
+            dependee_graph.Add(t, dependent);
+        }
     }
 
 
