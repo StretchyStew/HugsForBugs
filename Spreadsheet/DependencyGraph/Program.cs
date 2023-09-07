@@ -37,6 +37,7 @@ public class DependencyGraph
 
     private Dictionary<string, HashSet<string>> dependent_graph, dependee_graph;
 
+    //figured that it might be easier to just increase the count when I add something, rather than trying to count the keys
     private int dependencyGraphSize { get; set; }
 
     /// <summary>
@@ -149,17 +150,29 @@ public class DependencyGraph
     /// <param name="t"> t cannot be evaluated until s is</param>
     public void AddDependency(string s, string t)
     {
-        //if 's' is already in dependents, then it will just add it
+        //if 's' is already in dependents, then it will just add it to the existing HashSet.
         if (dependent_graph.ContainsKey(s))
         {
             dependee_graph[s].Add(t);
         }
-        //if 's' ins't in dependents, then this will create a new HashSet for the dependee and assign it to t.
+        //if 's' ins't in dependents, then this will create a new HashSet for the dependent and assign s to it.
         else
         {
             HashSet<string> dependent = new HashSet<string>();
             dependent.Add(s);
             dependee_graph.Add(t, dependent);
+        }
+        //if 't' is already in dependee, then it will just add it to the existing HashSet.
+        if (dependee_graph.ContainsKey(t))
+        {
+            dependee_graph[t].Add(s);
+        }
+        //if 't; isn't already in dependee, then it will create a new HashSet for the dependee and assign t to it.
+        else
+        {
+            HashSet<string> dependee = new HashSet<string>();
+            dependee.Add(t);
+            dependent_graph.Add(t, dependee);
         }
     }
 
