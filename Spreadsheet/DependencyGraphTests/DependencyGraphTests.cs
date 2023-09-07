@@ -1,10 +1,14 @@
 ﻿namespace DependencyGraphTests;
 
+using SpreadsheetUtilities;
+using System;
+
 [TestClass]
-public class UnitTest1
+public class DependencyGraphTests
 {
     [TestMethod]
-    public void TestMethod1()
+    public void TestNumOfDependee()
     {
+
     }
 }

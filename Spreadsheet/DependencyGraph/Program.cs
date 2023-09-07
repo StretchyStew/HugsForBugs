@@ -37,7 +37,7 @@ public class DependencyGraph
 
     private Dictionary<string, HashSet<string>> dependent_graph, dependee_graph;
 
-    private int dependencyGraphSize;
+    private int dependencyGraphSize { get; set; }
 
     /// <summary>
     /// Creates an empty DependencyGraph.
@@ -56,7 +56,7 @@ public class DependencyGraph
     /// </summary>
     public int NumDependencies
     {
-        get { return 0; }
+        get { return dependencyGraphSize; }
     }
 
 
@@ -66,7 +66,15 @@ public class DependencyGraph
     /// </summary>
     public int NumDependees(string s)
     {
-        return 0;
+        int numOfDependees = 0;
+        foreach (string key in dependee_graph.Keys)
+        {
+            if (dependee_graph.ContainsKey(s))
+            {
+                numOfDependees++;
+            }
+        }
+        return numOfDependees;
     }
 
 
@@ -75,7 +83,14 @@ public class DependencyGraph
     /// </summary>
     public bool HasDependents(string s)
     {
-        return false;
+        if (dependent_graph.ContainsKey(s))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
 
@@ -84,7 +99,14 @@ public class DependencyGraph
     /// </summary>
     public bool HasDependees(string s)
     {
-        return false;
+        if (dependee_graph.ContainsKey(s))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
 
@@ -93,7 +115,11 @@ public class DependencyGraph
     /// </summary>
     public IEnumerable<string> GetDependents(string s)
     {
-        return null;
+        if (dependent_graph.ContainsKey(s))
+        {
+            return new HashSet<string>(dependent_graph[s]);
+        }
+        return new HashSet<string>();
     }
 
 
@@ -102,7 +128,11 @@ public class DependencyGraph
     /// </summary>
     public IEnumerable<string> GetDependees(string s)
     {
-        return null;
+        if (dependee_graph.ContainsKey(s))
+        {
+            return new HashSet<string>(dependee_graph[s]);
+        }
+        return new HashSet<string>();
     }
 
 
@@ -112,6 +142,7 @@ public class DependencyGraph
     /// <para>This should be thought of as:</para>   
     /// 
     ///   t depends on s
+    ///   s is dependee
     ///
     /// </summary>
     /// <param name="s"> s must be evaluated first. T depends on S</param>
