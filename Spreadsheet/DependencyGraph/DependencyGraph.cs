@@ -169,7 +169,7 @@ public class DependencyGraph
         //if 's' is already in dependents, then it will just add it to the existing HashSet.
         if (dependent_graph.ContainsKey(t))
         {
-            dependee_graph[t].Add(s);
+            dependent_graph[t].Add(s);
         }
         //if 's' ins't in dependents, then this will create a new HashSet for the dependent and assign s to it.
         else
