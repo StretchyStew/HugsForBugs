@@ -63,17 +63,14 @@ public class DependencyGraph
     /// Returns the size of dependees(s),
     /// that is, the number of things that s depends on.
     /// </summary>
-    public int this[string s]
+    public int NumDependees(string s)
     {
-        get
+        if (dependent_graph.ContainsKey(s))
         {
-            if (dependent_graph.ContainsKey(s))
-            {
-                return dependent_graph[s].Count;
-            }
-            else
-                return 0;
+            return dependent_graph[s].Count;
         }
+        else
+            return 0;
     }
 
 
