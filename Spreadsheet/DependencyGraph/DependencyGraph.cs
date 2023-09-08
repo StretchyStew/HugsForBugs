@@ -1,8 +1,6 @@
 ﻿// Skeleton implementation by: Joe Zachary, Daniel Kopta, Travis Martin for CS 3500
 // Last updated: August 2023 (small tweak to API)
 
-using System;
-
 namespace SpreadsheetUtilities;
 
 /// <summary>
@@ -47,7 +45,6 @@ public class DependencyGraph
     {
         dependent_graph = new Dictionary<string, HashSet<string>>();
         dependee_graph = new Dictionary<string, HashSet<string>>();
-        int dependencyGraphSize = 0;
     }
 
 
@@ -223,6 +220,18 @@ public class DependencyGraph
     /// </summary>
     public void ReplaceDependents(string s, IEnumerable<string> newDependents)
     {
+        //creates a enumerable variable to be used in the for each containing the dependents of 's'
+        IEnumerable<string> oldDependents = GetDependents(s);
+        //for each dependent in old dependents, it will remove them
+        foreach (string r in oldDependents)
+        {
+            RemoveDependency(r, s);
+        }
+        //for each new dependent in newDependents, it will make and add them to 't'
+        foreach (string t in newDependents)
+        {
+            AddDependency(t, s);
+        }
     }
 
 
@@ -232,5 +241,17 @@ public class DependencyGraph
     /// </summary>
     public void ReplaceDependees(string s, IEnumerable<string> newDependees)
     {
+        //creates a enumerable variable to be used in the foreach containing the dependees of 's'
+        IEnumerable<string> oldDependees = GetDependees(s);
+        //for each dependee in oldDependees, it will remove them
+        foreach (string r in oldDependees)
+        {
+            RemoveDependency(r, s);
+        }
+        //for each new dependee in newDependees, it will make and add them to 't'
+        foreach (string t in newDependees)
+        {
+            AddDependency(t, s);
+        }
     }
 }
