@@ -33,10 +33,11 @@ namespace SpreadsheetUtilities;
 public class DependencyGraph
 {
 
-    private Dictionary<string, HashSet<string>> dependent_graph, dependee_graph;
+    private Dictionary<string, HashSet<string>> dependent_graph;
+    private Dictionary<string, HashSet<string>> dependee_graph;
 
     //figured that it might be easier to just increase the count when I add something, rather than trying to count the keys
-    private int dependencyGraphSize { get; set; }
+    private int dependencyGraphSize;
 
     /// <summary>
     /// Creates an empty DependencyGraph.
@@ -45,6 +46,7 @@ public class DependencyGraph
     {
         dependent_graph = new Dictionary<string, HashSet<string>>();
         dependee_graph = new Dictionary<string, HashSet<string>>();
+        dependencyGraphSize = 0;
     }
 
 
@@ -62,17 +64,17 @@ public class DependencyGraph
     /// Returns the size of dependees(s),
     /// that is, the number of things that s depends on.
     /// </summary>
-    public int NumDependees(string s)
+    public int this[string s]
     {
-        int numOfDependees = 0;
-        foreach (string key in dependee_graph.Keys)
+        get
         {
-            if (dependee_graph.ContainsKey(s))
+            if (dependent_graph.ContainsKey(s))
             {
-                numOfDependees++;
+                return dependent_graph[s].Count;
             }
+            else
+                return 0;
         }
-        return numOfDependees;
     }
 
 
@@ -81,7 +83,7 @@ public class DependencyGraph
     /// </summary>
     public bool HasDependents(string s)
     {
-        if (dependent_graph.ContainsKey(s))
+        if (dependee_graph.ContainsKey(s))
         {
             return true;
         }
@@ -97,7 +99,7 @@ public class DependencyGraph
     /// </summary>
     public bool HasDependees(string s)
     {
-        if (dependee_graph.ContainsKey(s))
+        if (dependent_graph.ContainsKey(s))
         {
             return true;
         }
@@ -113,9 +115,9 @@ public class DependencyGraph
     /// </summary>
     public IEnumerable<string> GetDependents(string s)
     {
-        if (dependent_graph.ContainsKey(s))
+        if (dependee_graph.ContainsKey(s))
         {
-            return new HashSet<string>(dependent_graph[s]);
+            return new HashSet<string>(dependee_graph[s]);
         }
         return new HashSet<string>();
     }
@@ -126,9 +128,9 @@ public class DependencyGraph
     /// </summary>
     public IEnumerable<string> GetDependees(string s)
     {
-        if (dependee_graph.ContainsKey(s))
+        if (dependent_graph.ContainsKey(s))
         {
-            return new HashSet<string>(dependee_graph[s]);
+            return new HashSet<string>(dependent_graph[s]);
         }
         return new HashSet<string>();
     }
@@ -148,21 +150,9 @@ public class DependencyGraph
     public void AddDependency(string s, string t)
     {
         //Adds one to the count if dependent graph doesn't have the key 's' and dependee graph doesn't contain key 't'.
-        if (!dependent_graph.ContainsKey(t) && dependee_graph.ContainsKey(s))
+        if (!(dependee_graph.ContainsKey(s) && dependent_graph.ContainsKey(t)))
         {
             dependencyGraphSize++;
-        }
-        //if 's' is already in dependents, then it will just add it to the existing HashSet.
-        if (dependent_graph.ContainsKey(t))
-        {
-            dependee_graph[t].Add(s);
-        }
-        //if 's' ins't in dependents, then this will create a new HashSet for the dependent and assign s to it.
-        else
-        {
-            HashSet<string> dependee = new HashSet<string>();
-            dependee.Add(s);
-            dependee_graph.Add(t, dependee);
         }
         //if 't' is already in dependee, then it will just add it to the existing HashSet.
         if (dependee_graph.ContainsKey(s))
@@ -174,7 +164,19 @@ public class DependencyGraph
         {
             HashSet<string> dependent = new HashSet<string>();
             dependent.Add(t);
-            dependent_graph.Add(t, dependent);
+            dependee_graph.Add(s, dependent);
+        }
+        //if 's' is already in dependents, then it will just add it to the existing HashSet.
+        if (dependent_graph.ContainsKey(t))
+        {
+            dependee_graph[t].Add(s);
+        }
+        //if 's' ins't in dependents, then this will create a new HashSet for the dependent and assign s to it.
+        else
+        {
+            HashSet<string> dependee = new HashSet<string>();
+            dependee.Add(s);
+            dependent_graph.Add(t, dependee);
         }
     }
 
@@ -187,15 +189,15 @@ public class DependencyGraph
     public void RemoveDependency(string s, string t)
     {
         //if dependent and dependee graph contain s and t, then this will subtract 1 from the graph size.
-        if (dependent_graph.ContainsKey(s) && dependee_graph.ContainsKey(t))
+        if (dependee_graph.ContainsKey(s) && dependent_graph.ContainsKey(t))
         {
             dependencyGraphSize--;
         }
         //if dependee graph contains 's', then it will remove t (dependents), once all the values are removed,
         //then it will finally remove s (dependee).
-        while (dependee_graph.ContainsKey(s))
+        if (dependee_graph.ContainsKey(s))
         {
-            dependee_graph.Remove(t);
+            dependee_graph[s].Remove(t);
             if (dependee_graph[s].Count() == 0)
             {
                 dependee_graph.Remove(s);
@@ -203,9 +205,9 @@ public class DependencyGraph
         }
         //if the dependent graph contains 't', then it will remove s (dependee), once all the values are removed,
         //then it will finally remove t (dependent).
-        while (dependent_graph.ContainsKey(t))
+        if (dependent_graph.ContainsKey(t))
         {
-            dependent_graph.Remove(s);
+            dependent_graph[t].Remove(s);
             if (dependent_graph[t].Count() == 0)
             {
                 dependee_graph.Remove(t);
@@ -225,12 +227,12 @@ public class DependencyGraph
         //for each dependent in old dependents, it will remove them
         foreach (string r in oldDependents)
         {
-            RemoveDependency(r, s);
+            RemoveDependency(s, r);
         }
         //for each new dependent in newDependents, it will make and add them to 't'
         foreach (string t in newDependents)
         {
-            AddDependency(t, s);
+            AddDependency(s, t);
         }
     }
 
