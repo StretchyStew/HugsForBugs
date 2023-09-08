@@ -148,33 +148,33 @@ public class DependencyGraph
     public void AddDependency(string s, string t)
     {
         //Adds one to the count if dependent graph doesn't have the key 's' and dependee graph doesn't contain key 't'.
-        if (!dependent_graph.ContainsKey(s) && dependee_graph.ContainsKey(t))
+        if (!dependent_graph.ContainsKey(t) && dependee_graph.ContainsKey(s))
         {
             dependencyGraphSize++;
         }
         //if 's' is already in dependents, then it will just add it to the existing HashSet.
-        if (dependent_graph.ContainsKey(s))
+        if (dependent_graph.ContainsKey(t))
         {
-            dependee_graph[s].Add(t);
+            dependee_graph[t].Add(s);
         }
         //if 's' ins't in dependents, then this will create a new HashSet for the dependent and assign s to it.
         else
         {
-            HashSet<string> dependent = new HashSet<string>();
-            dependent.Add(s);
-            dependee_graph.Add(t, dependent);
+            HashSet<string> dependee = new HashSet<string>();
+            dependee.Add(s);
+            dependee_graph.Add(t, dependee);
         }
         //if 't' is already in dependee, then it will just add it to the existing HashSet.
-        if (dependee_graph.ContainsKey(t))
+        if (dependee_graph.ContainsKey(s))
         {
-            dependee_graph[t].Add(s);
+            dependee_graph[s].Add(t);
         }
         //if 't; isn't already in dependee, then it will create a new HashSet for the dependee and assign t to it.
         else
         {
-            HashSet<string> dependee = new HashSet<string>();
-            dependee.Add(t);
-            dependent_graph.Add(t, dependee);
+            HashSet<string> dependent = new HashSet<string>();
+            dependent.Add(t);
+            dependent_graph.Add(t, dependent);
         }
     }
 
