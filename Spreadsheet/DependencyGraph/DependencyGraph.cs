@@ -32,11 +32,10 @@ namespace SpreadsheetUtilities;
 /// </summary>
 public class DependencyGraph
 {
+    //creates two dictionaries that will store respective dependent/dependee strings, and a HashSet
+    private Dictionary<string, HashSet<string>> dependent_graph, dependee_graph;
 
-    private Dictionary<string, HashSet<string>> dependent_graph;
-    private Dictionary<string, HashSet<string>> dependee_graph;
-
-    //figured that it might be easier to just increase the count when I add something, rather than trying to count the keys
+    //Decided to count in the Add and Remove methods, so I needed this int.
     private int dependencyGraphSize;
 
     /// <summary>
@@ -83,6 +82,7 @@ public class DependencyGraph
     /// </summary>
     public bool HasDependents(string s)
     {
+        //if dependee contains the dependent s, then it will return true
         if (dependee_graph.ContainsKey(s))
         {
             return true;
@@ -99,6 +99,7 @@ public class DependencyGraph
     /// </summary>
     public bool HasDependees(string s)
     {
+        //if dependent contains the dependee s, then it will return true
         if (dependent_graph.ContainsKey(s))
         {
             return true;
@@ -115,8 +116,10 @@ public class DependencyGraph
     /// </summary>
     public IEnumerable<string> GetDependents(string s)
     {
+        //first checks to see if 's' is in dependee_graph
         if (dependee_graph.ContainsKey(s))
         {
+            //if it is, then it will return a HashSet with the dependees
             return new HashSet<string>(dependee_graph[s]);
         }
         return new HashSet<string>();
@@ -128,8 +131,10 @@ public class DependencyGraph
     /// </summary>
     public IEnumerable<string> GetDependees(string s)
     {
+        //first checks to see if 's' is in dependent_graph
         if (dependent_graph.ContainsKey(s))
         {
+            //if it is, then it will return a HashSet with the dependents
             return new HashSet<string>(dependent_graph[s]);
         }
         return new HashSet<string>();
