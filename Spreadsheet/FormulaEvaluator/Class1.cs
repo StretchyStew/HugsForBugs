@@ -109,12 +109,53 @@ public static class Evaluator
             //checks to see if our token is a number, if so then do multiplication/division if applicable
             else if(Double.TryParse(token, out number)){
                 int num = (int) number;
+                string top = "";
+                if (operators.Count > 0)
+                {
+                    top = operators.Peek();
+                }
+
+                if (top.Equals("*") || top.Equals("/"))
+                {
+                    //Because we haven't pushed the current token, we don't need a new variable here
+                    int valOne = value.Pop();
+                    string operation = operators.Pop();
+
+                    if (operation.Equals("*"))
+                    {
+                        value.Push(valOne * num);
+                    }
+                    else
+                    {
+                        //divide by zero error
+                        if (valOne == 0)
+                        {
+                            throw new ArgumentException();
+                        }
+                        value.Push(num / valOne);
+                    }
+                }
+                else
+                {
+                    value.Push(num);
+                }
             }
 
+            //if we get this far, then it should be a variable with format char, int (A1)
+            else
+            {
+                for (int a = 0; a != token.Length; a++)
+                {
+                    char cur = token[a];
 
+                    if(a == 0 && char.IsLetter(cur))
+                    {
+
+                    }
+                }
+            }
         }
 
-        return 0;
     }
 
 }
