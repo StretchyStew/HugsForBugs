@@ -1,38 +1,195 @@
 ﻿using System.Text.RegularExpressions;
 using System;
 
-namespace FormulaEvaluator;
-
-public static class Evaluator
+namespace FormulaEvaluator
 {
-    public delegate int Lookup(String v);
 
-    public static int Evaluate(String exp, Lookup variableEvaluator)
+    public static class Evaluator
     {
-        string[] substrings = Regex.Split(exp, "(\\() | (\\))| (-) | (\\+)| (\\*)| (/)");
+        public delegate int Lookup(String v);
 
-        //removes whitespace
-        for (int i = 0; i < substrings.Length; i++)
+        public static int Evaluate(String exp, Lookup variableEvaluator)
         {
-            substrings[i] = substrings[i].Trim();
-        }
+            string[] substrings = Regex.Split(exp, "(\\() | (\\))| (-) | (\\+)| (\\*)| (/)");
 
-        //creates 2 stacks to hold the values and operators
-        Stack<int> value = new Stack<int>();
-        Stack<string> operators = new Stack<string>();
-
-        for (int i = 0; i < substrings.Length; i++)
-        {
-            string token = substrings[i];
-            double number;
-
-            if (token.Equals("*") || token.Equals("/") || token.Equals("("))
+            //removes whitespace
+            for (int i = 0; i < substrings.Length; i++)
             {
-                operators.Push(token);
+                substrings[i] = substrings[i].Trim();
             }
 
-            else if (token.Equals("+") || token.Equals("-") || token.Equals(")"))
+            //creates 2 stacks to hold the values and operators
+            Stack<int> value = new Stack<int>();
+            Stack<string> operators = new Stack<string>();
+
+            for (int i = 0; i < substrings.Length; i++)
             {
+                string token = substrings[i];
+                double number;
+
+                if (token.Equals("*") || token.Equals("/") || token.Equals("("))
+                {
+                    operators.Push(token);
+                }
+
+                else if (token.Equals("+") || token.Equals("-") || token.Equals(")"))
+                {
+                    string top = "";
+
+                    if (operators.Count > 0)
+                    {
+                        top = operators.Peek();
+                    }
+
+                    if (top.Equals("+") || top.Equals("-"))
+                    {
+                        int valOne = value.Pop();
+                        int valTwo = value.Pop();
+                        string operation = operators.Pop();
+
+                        if (operation.Equals("+"))
+                        {
+                            value.Push(valOne + valTwo);
+                        }
+                        else
+                        {
+                            value.Push(valOne - valTwo);
+                        }
+                    }
+
+                    if (top.Equals(")"))
+                    {
+                        string newTop = "";
+
+                        if (operators.Count > 0)
+                        {
+                            newTop = operators.Peek();
+                        }
+
+                        //makes sure it is complete i.e. (2+2) and not 2+2)
+                        if (newTop != "(")
+                        {
+                            throw new ArgumentException();
+                        }
+
+                        //removes the '(' from the top
+                        operators.Pop();
+
+                        if (operators.Count > 0)
+                        {
+                            newTop = operators.Peek();
+                        }
+
+                        if (newTop.Equals("*") || newTop.Equals("/"))
+                        {
+                            int valOne = value.Pop();
+                            int valTwo = value.Pop();
+                            string operation = operators.Pop();
+
+                            if (operation.Equals("*"))
+                            {
+                                value.Push(valOne * valTwo);
+                            }
+                            else
+                            {
+                                //divide by zero error
+                                if (valOne == 0)
+                                {
+                                    throw new ArgumentException();
+                                }
+                                value.Push(valTwo / valOne);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        operators.Push(token);
+                    }
+                }
+
+                //checks to see if our token is a number, if so then do multiplication/division if applicable
+                else if (Double.TryParse(token, out number))
+                {
+                    int num = (int)number;
+                    string top = "";
+                    if (operators.Count > 0)
+                    {
+                        top = operators.Peek();
+                    }
+
+                    if (top.Equals("*") || top.Equals("/"))
+                    {
+                        //Because we haven't pushed the current token, we don't need a new variable here
+                        int valOne = value.Pop();
+                        string operation = operators.Pop();
+
+                        if (operation.Equals("*"))
+                        {
+                            value.Push(valOne * num);
+                        }
+                        else
+                        {
+                            //divide by zero error
+                            if (valOne == 0)
+                            {
+                                throw new ArgumentException();
+                            }
+                            value.Push(num / valOne);
+                        }
+                    }
+                    else
+                    {
+                        value.Push(num);
+                    }
+                }
+
+                //if we get this far, then it should be a variable with format char, int (A1)
+                else
+                {
+                    for (int a = 0; a != token.Length; a++)
+                    {
+                        char cur = token[a];
+
+                        //if the first character is not a letter, then throw an exception i.e. 12
+                        if (a == 0 && !(char.IsLetter(cur)))
+                        {
+                            throw new ArgumentException();
+                        }
+
+                        //if it encounters a digit, then it will make sure the rest of them are digits i.e. A1%
+                        if (char.IsDigit(cur))
+                        {
+                            for (int b = a; b < token.Length; b++)
+                            {
+                                char curr = token[b];
+                                if (!char.IsDigit(curr))
+                                {
+                                    throw new ArgumentException();
+                                }
+                            }
+                        }
+
+                        //makes sure there are digits on the end i.e. ABC
+                        if ((a == token.Length - 1) && !char.IsDigit(cur))
+                        {
+                            throw new ArgumentException();
+                        }
+                    }
+                }
+            }
+
+            if (operators.Count == 0)
+            {
+                return value.Pop();
+            }
+
+            else
+            {
+                if (operators.Count != 1 && value.Count != 2)
+                {
+                    throw new ArgumentException();
+                }
+
                 string top = "";
 
                 if (operators.Count > 0)
@@ -46,114 +203,18 @@ public static class Evaluator
                     int valTwo = value.Pop();
                     string operation = operators.Pop();
 
-                    if (operation == "+")
+                    if (operation.Equals("+"))
                     {
-                        value.Push(valOne + valTwo);
+                        return valTwo + valOne;
                     }
                     else
                     {
-                        value.Push(valOne - valTwo);
-                    }
-                }
-
-                if (top.Equals(")"))
-                {
-                    string newTop = "";
-
-                    if (operators.Count > 0)
-                    {
-                        newTop = operators.Peek();
-                    }
-
-                    //makes sure it is complete i.e. (2+2) and not 2+2)
-                    if (newTop != "(")
-                    {
-                        throw new ArgumentException();
-                    }
-
-                    //removes the '(' from the top
-                    operators.Pop();
-
-                    if (operators.Count > 0)
-                    {
-                        newTop = operators.Peek();
-                    }
-
-                    if (newTop.Equals("*") || newTop.Equals("/"))
-                    {
-                        int valOne = value.Pop();
-                        int valTwo = value.Pop();
-                        string operation = operators.Pop();
-
-                        if (operation.Equals("*"))
-                        {
-                            value.Push(valOne * valTwo);
-                        }
-                        else
-                        {
-                            //divide by zero error
-                            if (valOne == 0)
-                            {
-                                throw new ArgumentException();
-                            }
-                            value.Push(valTwo / valOne);
-                        }
-                    }
-                }
-                else
-                {
-                    operators.Push(token);
-                }
-            }
-
-            //checks to see if our token is a number, if so then do multiplication/division if applicable
-            else if(Double.TryParse(token, out number)){
-                int num = (int) number;
-                string top = "";
-                if (operators.Count > 0)
-                {
-                    top = operators.Peek();
-                }
-
-                if (top.Equals("*") || top.Equals("/"))
-                {
-                    //Because we haven't pushed the current token, we don't need a new variable here
-                    int valOne = value.Pop();
-                    string operation = operators.Pop();
-
-                    if (operation.Equals("*"))
-                    {
-                        value.Push(valOne * num);
-                    }
-                    else
-                    {
-                        //divide by zero error
-                        if (valOne == 0)
-                        {
-                            throw new ArgumentException();
-                        }
-                        value.Push(num / valOne);
-                    }
-                }
-                else
-                {
-                    value.Push(num);
-                }
-            }
-
-            //if we get this far, then it should be a variable with format char, int (A1)
-            else
-            {
-                for (int a = 0; a != token.Length; a++)
-                {
-                    char cur = token[a];
-
-                    if(a == 0 && char.IsLetter(cur))
-                    {
-
+                        return valTwo - valOne;
                     }
                 }
             }
+            return 0;
+
         }
 
     }
