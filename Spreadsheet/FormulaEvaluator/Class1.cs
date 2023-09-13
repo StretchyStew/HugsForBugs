@@ -1,9 +1,24 @@
-﻿namespace FormulaEvaluator;
+﻿using System.Text.RegularExpressions;
+using System;
 
-public delegate int Lookup(String v);
+namespace FormulaEvaluator;
 
-public static int Evaluate(String exp, Lookup variableEvaluator)
+public static class Evaluator
 {
-    string[] substrings = Regex.Split(s, "(\\() | (\\))| (-) | (\\+)| (\\*)| (/)");
-}
+    public delegate int Lookup(String v);
 
+    public static int Evaluate(String exp, Lookup variableEvaluator)
+    {
+        string[] substrings = Regex.Split(exp, "(\\() | (\\))| (-) | (\\+)| (\\*)| (/)");
+
+        //removes whitespace
+        for (int i = 0; i < substrings.Length; i++)
+        {
+            substrings[i] = substrings[i].Trim();
+        }
+
+        
+        return 0;
+    }
+
+}
