@@ -6,16 +6,19 @@ namespace FormulaEvaluator
 
     public static class Evaluator
     {
+
         public delegate int Lookup(String v);
+
 
         public static int Evaluate(String exp, Lookup variableEvaluator)
         {
-            string[] substrings = Regex.Split(exp, "(\\() | (\\))| (-) | (\\+)| (\\*)| (/)");
+            string[] substrings = Regex.Split(exp, "(\\()|(\\))|(-)|(\\+)|(\\*)|(/)");
 
             //removes whitespace
             for (int i = 0; i < substrings.Length; i++)
             {
-                substrings[i] = substrings[i].Trim();
+                string trim = substrings[i].Trim();
+                substrings[i] = trim;
             }
 
             //creates 2 stacks to hold the values and operators
@@ -26,6 +29,11 @@ namespace FormulaEvaluator
             {
                 string token = substrings[i];
                 double number;
+
+                if (token.Equals(""))
+                {
+                    continue;
+                }
 
                 if (token.Equals("*") || token.Equals("/") || token.Equals("("))
                 {
@@ -43,21 +51,30 @@ namespace FormulaEvaluator
 
                     if (top.Equals("+") || top.Equals("-"))
                     {
+
+                        if (value.Count < 2)
+                        {
+                            throw new ArgumentException();
+                        }
+
                         int valOne = value.Pop();
                         int valTwo = value.Pop();
                         string operation = operators.Pop();
 
+                        int answer = 0;
+
                         if (operation.Equals("+"))
                         {
-                            value.Push(valOne + valTwo);
+                            answer = valTwo + valOne;
                         }
                         else
                         {
-                            value.Push(valOne - valTwo);
+                            answer = valTwo - valOne;
                         }
+                        value.Push(answer);
                     }
 
-                    if (top.Equals(")"))
+                    if (token.Equals(")"))
                     {
                         string newTop = "";
 
@@ -82,13 +99,21 @@ namespace FormulaEvaluator
 
                         if (newTop.Equals("*") || newTop.Equals("/"))
                         {
+
+                            if (value.Count < 2)
+                            {
+                                throw new ArgumentException();
+                            }
+
                             int valOne = value.Pop();
                             int valTwo = value.Pop();
                             string operation = operators.Pop();
 
+                            int answer;
+
                             if (operation.Equals("*"))
                             {
-                                value.Push(valOne * valTwo);
+                                answer = valOne * valTwo;
                             }
                             else
                             {
@@ -97,8 +122,9 @@ namespace FormulaEvaluator
                                 {
                                     throw new ArgumentException();
                                 }
-                                value.Push(valTwo / valOne);
+                                answer = valTwo / valOne;
                             }
+                            value.Push(answer);
                         }
                     }
                     else
@@ -110,8 +136,10 @@ namespace FormulaEvaluator
                 //checks to see if our token is a number, if so then do multiplication/division if applicable
                 else if (Double.TryParse(token, out number))
                 {
-                    int num = (int)number;
+                    int num = (int) number;
+
                     string top = "";
+
                     if (operators.Count > 0)
                     {
                         top = operators.Peek();
@@ -119,13 +147,14 @@ namespace FormulaEvaluator
 
                     if (top.Equals("*") || top.Equals("/"))
                     {
-                        //Because we haven't pushed the current token, we don't need a new variable here
+                        //Because we haven't popped the current token, we don't need a new variable here
                         int valOne = value.Pop();
                         string operation = operators.Pop();
+                        int answer;
 
                         if (operation.Equals("*"))
                         {
-                            value.Push(valOne * num);
+                            answer = valOne * num;
                         }
                         else
                         {
@@ -134,8 +163,9 @@ namespace FormulaEvaluator
                             {
                                 throw new ArgumentException();
                             }
-                            value.Push(num / valOne);
+                            answer = valOne / num;
                         }
+                        value.Push(answer);
                     }
                     else
                     {
@@ -175,45 +205,75 @@ namespace FormulaEvaluator
                             throw new ArgumentException();
                         }
                     }
+
+                    int t = variableEvaluator(token);
+
+                    String top = "";
+                    if (operators.Count > 0)
+                    {
+                        top = operators.Peek();
+                    }
+
+                    if (top.Equals("*") || top.Equals("/"))
+                    {
+                        int valOne = value.Pop();
+                        string operation = operators.Pop();
+
+                        int answer;
+
+                        if (operation.Equals("*"))
+                        {
+                            answer = valOne * t;
+                        }
+                        else
+                        {
+                            if (t == 0)
+                            {
+                                throw new ArgumentException();
+                            }
+                            answer = valOne / t;
+                        }
+                        value.Push(answer);
+                    }
+                    else
+                    {
+                        value.Push(t);
+                    }
                 }
             }
 
             if (operators.Count == 0)
             {
+                if (value.Count != 1)
+                {
+                    throw new ArgumentException();
+                }
                 return value.Pop();
             }
 
             else
             {
-                if (operators.Count != 1 && value.Count != 2)
+                if ((operators.Count != 1) || (value.Count != 2))
                 {
                     throw new ArgumentException();
                 }
 
-                string top = "";
+                int valOne = value.Pop();
+                int valTwo = value.Pop();
+                string operation = operators.Pop();
 
-                if (operators.Count > 0)
+                int answer;
+
+                if (operation.Equals("+"))
                 {
-                    top = operators.Peek();
+                    answer = valTwo + valOne;
                 }
-
-                if (top.Equals("+") || top.Equals("-"))
+                else
                 {
-                    int valOne = value.Pop();
-                    int valTwo = value.Pop();
-                    string operation = operators.Pop();
-
-                    if (operation.Equals("+"))
-                    {
-                        return valTwo + valOne;
-                    }
-                    else
-                    {
-                        return valTwo - valOne;
-                    }
+                    answer = valTwo - valOne;
                 }
+                return answer;
             }
-            return 0;
 
         }
 
