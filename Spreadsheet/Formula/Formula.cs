@@ -3,6 +3,7 @@
 // do anything else!
 // Last updated: August 2023 (small tweak to API)
 
+using System;
 using System.Text.RegularExpressions;
 
 namespace SpreadsheetUtilities;
@@ -41,6 +42,10 @@ public class Formula
     {
     }
 
+    public List<string> token;
+
+    public HashSet<string> normalizedVariables;
+
     /// <summary>
     /// Creates a Formula from a string that consists of an infix expression written as
     /// described in the class comment.  If the expression is syntactically incorrect,
@@ -65,6 +70,14 @@ public class Formula
     /// </summary>
     public Formula(string formula, Func<string, string> normalize, Func<string, bool> isValid)
     {
+        if (formula == string.Empty)
+        {
+            throw new FormulaFormatException("Your Formula is empty, try adding a formula or characters into the cell.");
+        }
+
+        token = new List<string>(GetTokens(formula));
+
+        normalizedVariables = new HashSet<string>();
     }
 
     /// <summary>
@@ -154,6 +167,10 @@ public class Formula
     /// </summary>
     public static bool operator ==(Formula f1, Formula f2)
     {
+        if (f1 == f2)
+        {
+            return true;
+        }
         return false;
     }
 
@@ -163,6 +180,10 @@ public class Formula
     /// </summary>
     public static bool operator !=(Formula f1, Formula f2)
     {
+        if (f1 != f2)
+        {
+            return true;
+        }
         return false;
     }
 
