@@ -119,7 +119,8 @@ public class Formula
     /// </summary>
     public IEnumerable<string> GetVariables()
     {
-        return new List<string>();
+        HashSet<string> temp = new HashSet<string>(normalizedVariables);
+        return temp;
     }
 
     /// <summary>
@@ -134,7 +135,12 @@ public class Formula
     /// </summary>
     public override string ToString()
     {
-        return "";
+        string formula = "";
+        for (int i = 0; i < token.Count; i++)
+        {
+            formula += token[i];
+        }
+        return formula;
     }
 
     /// <summary>
