@@ -173,11 +173,20 @@ public class Formula
     /// </summary>
     public static bool operator ==(Formula f1, Formula f2)
     {
-        if (f1 == f2)
+        if (ReferenceEquals(f1, null) && ReferenceEquals(f2, null))
         {
             return true;
         }
-        return false;
+        else if (!ReferenceEquals(f1, null) && ReferenceEquals(f2, null))
+        {
+            return false;
+        }
+        else if (ReferenceEquals(f1, null) && !ReferenceEquals(f2, null))
+        {
+            return false;
+        }
+
+        return f1.Equals(f2);
     }
 
     /// <summary>
@@ -186,7 +195,7 @@ public class Formula
     /// </summary>
     public static bool operator !=(Formula f1, Formula f2)
     {
-        if (f1 != f2)
+        if (!(f1 == f2))
         {
             return true;
         }
