@@ -159,7 +159,7 @@ namespace FormulaEvaluator
                         else
                         {
                             //divide by zero error
-                            if (valOne == 0)
+                            if (num == 0)
                             {
                                 throw new ArgumentException();
                             }
