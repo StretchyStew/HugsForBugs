@@ -78,7 +78,58 @@ public class Formula
         token = new List<string>(GetTokens(formula));
 
         normalizedVariables = new HashSet<string>();
+
+        double number;
+
+
+        //first checking if the first and last token are valid (parentheses, number, and variable)
+        string firstToken = token.First<string>();
+        string lastToken = token.Last<string>();
+
+        if (!firstToken.Equals("("))
+        {
+            if (!double.TryParse(firstToken, out number))
+            {
+                if (!ValidVariable(firstToken))
+                {
+                    throw new FormulaFormatException("The first character does not contain a parentheses, number, or variable.");
+                }
+            }
+        }
+
+        if (!lastToken.Equals("("))
+        {
+            if (!double.TryParse(lastToken, out number))
+            {
+                if (!ValidVariable(lastToken))
+                {
+                    throw new FormulaFormatException("The last character does not contain a parentheses, number, or variable.");
+                }
+            }
+        }
+
+        //next I'm going to check if the token is a valid character, double, or operation.
+
     }
+
+
+    /// <summary>
+    /// Checks to see if the token is a valid variable
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
+    private static bool ValidVariable(string token)
+    {
+        if(Regex.IsMatch(token, @"[a-zA-Z_](?: [a-zA-Z_]|\d)*", RegexOptions.Singleline))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
 
     /// <summary>
     /// Evaluates this Formula, using the lookup delegate to determine the values of
