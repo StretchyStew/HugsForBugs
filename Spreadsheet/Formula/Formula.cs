@@ -233,15 +233,8 @@ public class Formula
     {
         string[] substrings = token.Cast<string>().ToArray<string>();
 
-        //removes whitespace
-        for (int i = 0; i < substrings.Length; i++)
-        {
-            string trim = substrings[i].Trim();
-            substrings[i] = trim;
-        }
-
         //creates 2 stacks to hold the values and operators
-        Stack<int> value = new Stack<int>();
+        Stack<double> value = new Stack<double>();
         Stack<string> operators = new Stack<string>();
 
         for (int i = 0; i < substrings.Length; i++)
@@ -275,7 +268,7 @@ public class Formula
                     double valTwo = value.Pop();
                     string operation = operators.Pop();
 
-                    int answer = 0;
+                    double answer = 0;
 
                     if (operation.Equals("+"))
                     {
@@ -308,11 +301,11 @@ public class Formula
                     if (newTop.Equals("*") || newTop.Equals("/"))
                     {
 
-                        int valOne = value.Pop();
-                        int valTwo = value.Pop();
+                        double valOne = value.Pop();
+                        double valTwo = value.Pop();
                         string operation = operators.Pop();
 
-                        int answer;
+                        double answer;
 
                         if (operation.Equals("*"))
                         {
@@ -323,7 +316,7 @@ public class Formula
                             //divide by zero error
                             if (valOne == 0)
                             {
-                                throw new ArgumentException();
+                                throw new ArgumentException("Cannot Divide By 0.");
                             }
                             answer = valTwo / valOne;
                         }
@@ -339,7 +332,7 @@ public class Formula
             //checks to see if our token is a number, if so then do multiplication/division if applicable
             else if (Double.TryParse(token, out number))
             {
-                int num = (int)number;
+                double num = number;
 
                 string top = "";
 
@@ -351,9 +344,9 @@ public class Formula
                 if (top.Equals("*") || top.Equals("/"))
                 {
                     //Because we haven't popped the current token, we don't need a new variable here
-                    int valOne = value.Pop();
+                    double valOne = value.Pop();
                     string operation = operators.Pop();
-                    int answer;
+                    double answer;
 
                     if (operation.Equals("*"))
                     {
@@ -364,7 +357,7 @@ public class Formula
                         //divide by zero error
                         if (num == 0)
                         {
-                            throw new ArgumentException();
+                            throw new ArgumentException("Cannot Divide by 0.");
                         }
                         answer = valOne / num;
                     }
@@ -383,33 +376,16 @@ public class Formula
                 {
                     char cur = token[a];
 
-                    //if the first character is not a letter, then throw an exception i.e. 12
-                    if (a == 0 && !(char.IsLetter(cur)))
-                    {
-                        throw new ArgumentException();
-                    }
-
-                    //if it encounters a digit, then it will make sure the rest of them are digits i.e. A1%
                     if (char.IsDigit(cur))
                     {
                         for (int b = a; b < token.Length; b++)
                         {
                             char curr = token[b];
-                            if (!char.IsDigit(curr))
-                            {
-                                throw new ArgumentException();
-                            }
                         }
-                    }
-
-                    //makes sure there are digits on the end i.e. ABC
-                    if ((a == token.Length - 1) && !char.IsDigit(cur))
-                    {
-                        throw new ArgumentException();
                     }
                 }
 
-                int t = variableEvaluator(token);
+                double t = lookup(token);
 
                 String top = "";
                 if (operators.Count > 0)
@@ -419,10 +395,10 @@ public class Formula
 
                 if (top.Equals("*") || top.Equals("/"))
                 {
-                    int valOne = value.Pop();
+                    double valOne = value.Pop();
                     string operation = operators.Pop();
 
-                    int answer;
+                    double answer;
 
                     if (operation.Equals("*"))
                     {
@@ -447,25 +423,16 @@ public class Formula
 
         if (operators.Count == 0)
         {
-            if (value.Count != 1)
-            {
-                throw new ArgumentException();
-            }
             return value.Pop();
         }
 
         else
         {
-            if ((operators.Count != 1) || (value.Count != 2))
-            {
-                throw new ArgumentException();
-            }
-
-            int valOne = value.Pop();
-            int valTwo = value.Pop();
+            double valOne = value.Pop();
+            double valTwo = value.Pop();
             string operation = operators.Pop();
 
-            int answer;
+            double answer;
 
             if (operation.Equals("+"))
             {
@@ -588,7 +555,7 @@ public class Formula
     /// </summary>
     public static bool operator !=(Formula f1, Formula f2)
     {
-        if (!(f1 == f2))
+        if (f1 != f2)
         {
             return true;
         }
