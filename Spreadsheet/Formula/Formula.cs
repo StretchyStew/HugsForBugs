@@ -209,7 +209,8 @@ public class Formula
     /// </summary>
     public override int GetHashCode()
     {
-        return 0;
+        int hash_code = this.ToString().GetHashCode();
+        return hash_code;
     }
 
     /// <summary>
