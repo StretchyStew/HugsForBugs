@@ -111,6 +111,10 @@ public class Formula
             }
         }
 
+        string previousToken = "";
+
+        List<string> operations = new List<string> {"+", "-", "*", "/"};
+
         //Check if the token is a valid character, double, or operation.
         for (int i = 0; i < token.Count(); i++)
         {
@@ -127,7 +131,7 @@ public class Formula
                     throw new FormulaFormatException("You cannot have more closing parenthese than open ones.");
                 }
             }
-            else if (t.Equals("*") || t.Equals("/") || t.Equals("+") || t.Equals("-")) { }
+            else if (operations.Contains(t)) { }
             else if (double.TryParse(t, out number))
             {
                 token[i] = number.ToString();
@@ -139,7 +143,22 @@ public class Formula
             }
 
             //Makes sure the formula is in proper writing, meaning "(A1 + 1)/2" and not something like ( + 1)/
-            if ()
+            if (operations.Contains(t) || t.Equals("("))
+            {
+                if (!(double.TryParse(t, out number) || ValidVariable(t) || t.Equals("(")))
+                {
+                    throw new FormulaFormatException("An operation or '(' needs to be followed by a number, variable, or '('.");
+                }
+            }
+            else if (previousToken.Equals(")") || double.TryParse(previousToken, out number) || ValidVariable(previousToken))
+            {
+                if (!operations.Contains(t))
+                {
+                    throw new FormulaFormatException("Numbers, variables, and ')' need to be followed by an operation.");
+                }
+            }
+
+            previousToken = t;
         }
 
     }
