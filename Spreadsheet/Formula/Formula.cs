@@ -71,7 +71,7 @@ public class Formula
     public Formula(string formula, Func<string, string> normalize, Func<string, bool> isValid)
     {
         //checks for an empty formula
-        if (formula == string.Empty || ReferenceEquals(formula, null))
+        if (string.IsNullOrEmpty(formula))
         {
             throw new FormulaFormatException("Your Formula is empty, try adding a formula or characters into the cell.");
         }
@@ -113,7 +113,7 @@ public class Formula
 
         string previousToken = "";
 
-        List<string> operations = new List<string> {"+", "-", "*", "/"};
+        //List<string> operations = new List<string> {"+", "-", "*", "/"};
 
         //Check if the token is a valid character, double, or operation.
         for (int i = 0; i < token.Count(); i++)
@@ -131,7 +131,7 @@ public class Formula
                     throw new FormulaFormatException("You cannot have more closing parenthese than open ones.");
                 }
             }
-            else if (operations.Contains(t)) { }
+            else if (t.Equals("+") || t.Equals("-") || t.Equals("*") || t.Equals("/")){ }
             else if (double.TryParse(t, out number))
             {
                 token[i] = number.ToString();
@@ -143,7 +143,7 @@ public class Formula
             }
 
             //Makes sure the formula is in proper writing, meaning "(A1 + 1)/2" and not something like ( + 1)/
-            if (operations.Contains(t) || t.Equals("("))
+            if (previousToken.Equals("+") || previousToken.Equals("-") || previousToken.Equals("*") || previousToken.Equals("/") || previousToken.Equals("("))
             {
                 if (!(double.TryParse(t, out number) || ValidVariable(t) || t.Equals("(")))
                 {
@@ -152,7 +152,7 @@ public class Formula
             }
             else if (previousToken.Equals(")") || double.TryParse(previousToken, out number) || ValidVariable(previousToken))
             {
-                if (!operations.Contains(t))
+                if (!(t.Equals("+") || t.Equals("-") || t.Equals("*") || t.Equals("/") || t.Equals(")")))
                 {
                     throw new FormulaFormatException("Numbers, variables, and ')' need to be followed by an operation.");
                 }
@@ -316,7 +316,7 @@ public class Formula
                             //divide by zero error
                             if (valOne == 0)
                             {
-                                throw new ArgumentException("Cannot Divide By 0.");
+                                throw new DivideByZeroException("Cannot Divide By 0.");
                             }
                             answer = valTwo / valOne;
                         }
@@ -357,7 +357,7 @@ public class Formula
                         //divide by zero error
                         if (num == 0)
                         {
-                            throw new ArgumentException("Cannot Divide by 0.");
+                            throw new DivideByZeroException("Cannot Divide by 0.");
                         }
                         answer = valOne / num;
                     }
