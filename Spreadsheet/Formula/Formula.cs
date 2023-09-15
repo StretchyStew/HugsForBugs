@@ -161,14 +161,40 @@ public class Formula
             previousToken = t;
         }
 
+        if(openParenthesesCount != closeParenthesesCount)
+        {
+            throw new FormulaFormatException("Your formula does not contain an equal number of '(' to ')'.");
+        }
+
+        //Note: should be a valid formula
+
+        for (int i = 0; i != token.Count(); i++)
+        {
+            string v = token[i];
+            if (ValidVariable(v))
+            {
+                if (!ValidVariable(normalize(v)))
+                {
+                    throw new FormulaFormatException("The normalized variable is not a valid variable.");
+                }
+                if (!isValid(normalize(v)))
+                {
+                    throw new FormulaFormatException("The normalized variable is not valid.");
+                }
+                else
+                {
+                    token[i] = normalize(v);
+                    normalizedVariables.Add(token[i]);
+                }
+            }
+        }
+
     }
 
 
     /// <summary>
     /// Checks to see if the token is a valid variable
     /// </summary>
-    /// <param name="token"></param>
-    /// <returns></returns>
     private static bool ValidVariable(string token)
     {
         if(Regex.IsMatch(token, @"[a-zA-Z_](?: [a-zA-Z_]|\d)*", RegexOptions.Singleline))
@@ -205,7 +231,252 @@ public class Formula
     /// </summary>
     public object Evaluate(Func<string, double> lookup)
     {
-        return "";
+        string[] substrings = token.Cast<string>().ToArray<string>();
+
+        //removes whitespace
+        for (int i = 0; i < substrings.Length; i++)
+        {
+            string trim = substrings[i].Trim();
+            substrings[i] = trim;
+        }
+
+        //creates 2 stacks to hold the values and operators
+        Stack<int> value = new Stack<int>();
+        Stack<string> operators = new Stack<string>();
+
+        for (int i = 0; i < substrings.Length; i++)
+        {
+            string token = substrings[i];
+            double number;
+
+            if (token.Equals(""))
+            {
+                continue;
+            }
+
+            if (token.Equals("*") || token.Equals("/") || token.Equals("("))
+            {
+                operators.Push(token);
+            }
+
+            else if (token.Equals("+") || token.Equals("-") || token.Equals(")"))
+            {
+                string top = "";
+
+                if (operators.Count > 0)
+                {
+                    top = operators.Peek();
+                }
+
+                if (top.Equals("+") || top.Equals("-"))
+                {
+
+                    double valOne = value.Pop();
+                    double valTwo = value.Pop();
+                    string operation = operators.Pop();
+
+                    int answer = 0;
+
+                    if (operation.Equals("+"))
+                    {
+                        answer = valTwo + valOne;
+                    }
+                    else
+                    {
+                        answer = valTwo - valOne;
+                    }
+                    value.Push(answer);
+                }
+
+                if (token.Equals(")"))
+                {
+                    string newTop = "";
+
+                    if (operators.Count > 0)
+                    {
+                        newTop = operators.Peek();
+                    }
+
+                    //removes the '(' from the top
+                    operators.Pop();
+
+                    if (operators.Count > 0)
+                    {
+                        newTop = operators.Peek();
+                    }
+
+                    if (newTop.Equals("*") || newTop.Equals("/"))
+                    {
+
+                        int valOne = value.Pop();
+                        int valTwo = value.Pop();
+                        string operation = operators.Pop();
+
+                        int answer;
+
+                        if (operation.Equals("*"))
+                        {
+                            answer = valOne * valTwo;
+                        }
+                        else
+                        {
+                            //divide by zero error
+                            if (valOne == 0)
+                            {
+                                throw new ArgumentException();
+                            }
+                            answer = valTwo / valOne;
+                        }
+                        value.Push(answer);
+                    }
+                }
+                else
+                {
+                    operators.Push(token);
+                }
+            }
+
+            //checks to see if our token is a number, if so then do multiplication/division if applicable
+            else if (Double.TryParse(token, out number))
+            {
+                int num = (int)number;
+
+                string top = "";
+
+                if (operators.Count > 0)
+                {
+                    top = operators.Peek();
+                }
+
+                if (top.Equals("*") || top.Equals("/"))
+                {
+                    //Because we haven't popped the current token, we don't need a new variable here
+                    int valOne = value.Pop();
+                    string operation = operators.Pop();
+                    int answer;
+
+                    if (operation.Equals("*"))
+                    {
+                        answer = valOne * num;
+                    }
+                    else
+                    {
+                        //divide by zero error
+                        if (num == 0)
+                        {
+                            throw new ArgumentException();
+                        }
+                        answer = valOne / num;
+                    }
+                    value.Push(answer);
+                }
+                else
+                {
+                    value.Push(num);
+                }
+            }
+
+            //if we get this far, then it should be a variable with format char, int (A1)
+            else
+            {
+                for (int a = 0; a != token.Length; a++)
+                {
+                    char cur = token[a];
+
+                    //if the first character is not a letter, then throw an exception i.e. 12
+                    if (a == 0 && !(char.IsLetter(cur)))
+                    {
+                        throw new ArgumentException();
+                    }
+
+                    //if it encounters a digit, then it will make sure the rest of them are digits i.e. A1%
+                    if (char.IsDigit(cur))
+                    {
+                        for (int b = a; b < token.Length; b++)
+                        {
+                            char curr = token[b];
+                            if (!char.IsDigit(curr))
+                            {
+                                throw new ArgumentException();
+                            }
+                        }
+                    }
+
+                    //makes sure there are digits on the end i.e. ABC
+                    if ((a == token.Length - 1) && !char.IsDigit(cur))
+                    {
+                        throw new ArgumentException();
+                    }
+                }
+
+                int t = variableEvaluator(token);
+
+                String top = "";
+                if (operators.Count > 0)
+                {
+                    top = operators.Peek();
+                }
+
+                if (top.Equals("*") || top.Equals("/"))
+                {
+                    int valOne = value.Pop();
+                    string operation = operators.Pop();
+
+                    int answer;
+
+                    if (operation.Equals("*"))
+                    {
+                        answer = valOne * t;
+                    }
+                    else
+                    {
+                        if (t == 0)
+                        {
+                            throw new ArgumentException();
+                        }
+                        answer = valOne / t;
+                    }
+                    value.Push(answer);
+                }
+                else
+                {
+                    value.Push(t);
+                }
+            }
+        }
+
+        if (operators.Count == 0)
+        {
+            if (value.Count != 1)
+            {
+                throw new ArgumentException();
+            }
+            return value.Pop();
+        }
+
+        else
+        {
+            if ((operators.Count != 1) || (value.Count != 2))
+            {
+                throw new ArgumentException();
+            }
+
+            int valOne = value.Pop();
+            int valTwo = value.Pop();
+            string operation = operators.Pop();
+
+            int answer;
+
+            if (operation.Equals("+"))
+            {
+                answer = valTwo + valOne;
+            }
+            else
+            {
+                answer = valTwo - valOne;
+            }
+            return answer;
+        }
     }
 
     /// <summary>
@@ -266,7 +537,40 @@ public class Formula
     /// </summary>
     public override bool Equals(object? obj)
     {
-        return false;
+        //if null or not a formula, then we have to return false because we can not check if they are equal
+        if (ReferenceEquals(obj, null) || obj.GetType() != this.GetType())
+        {
+            return false;
+        }
+
+        Formula formula = (Formula) obj;
+
+        //checks each token, return false if not equal
+        for (int i = 0; i < this.token.Count(); i++)
+        {
+            string current = this.token[i];
+            string actualCurrent = formula.token[i];
+
+            double currentNumber;
+            double actualCurrentNumber;
+
+            if (double.TryParse(current, out currentNumber) && double.TryParse(actualCurrent, out actualCurrentNumber))
+            {
+                if (current != actualCurrent)
+                {
+                    return false;
+                }
+                else
+                {
+                    if (!current.Equals(actualCurrent))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        //if it comes this far, then it should be equal.
+        return true;
     }
 
     /// <summary>
@@ -275,19 +579,6 @@ public class Formula
     /// </summary>
     public static bool operator ==(Formula f1, Formula f2)
     {
-        if (ReferenceEquals(f1, null) && ReferenceEquals(f2, null))
-        {
-            return true;
-        }
-        else if (!ReferenceEquals(f1, null) && ReferenceEquals(f2, null))
-        {
-            return false;
-        }
-        else if (ReferenceEquals(f1, null) && !ReferenceEquals(f2, null))
-        {
-            return false;
-        }
-
         return f1.Equals(f2);
     }
 
