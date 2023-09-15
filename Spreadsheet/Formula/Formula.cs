@@ -70,7 +70,8 @@ public class Formula
     /// </summary>
     public Formula(string formula, Func<string, string> normalize, Func<string, bool> isValid)
     {
-        if (formula == string.Empty)
+        //checks for an empty formula
+        if (formula == string.Empty || ReferenceEquals(formula, null))
         {
             throw new FormulaFormatException("Your Formula is empty, try adding a formula or characters into the cell.");
         }
@@ -81,6 +82,8 @@ public class Formula
 
         double number;
 
+        int openParenthesesCount = 0;
+        int closeParenthesesCount = 0;
 
         //first checking if the first and last token are valid (parentheses, number, and variable)
         string firstToken = token.First<string>();
@@ -97,7 +100,7 @@ public class Formula
             }
         }
 
-        if (!lastToken.Equals("("))
+        if (!lastToken.Equals(")"))
         {
             if (!double.TryParse(lastToken, out number))
             {
@@ -108,7 +111,36 @@ public class Formula
             }
         }
 
-        //next I'm going to check if the token is a valid character, double, or operation.
+        //Check if the token is a valid character, double, or operation.
+        for (int i = 0; i < token.Count(); i++)
+        {
+            string t = token[i];
+            if (t.Equals("("))
+            {
+                openParenthesesCount++;
+            }
+            else if (t.Equals(")"))
+            {
+                closeParenthesesCount++;
+                if (openParenthesesCount < closeParenthesesCount)
+                {
+                    throw new FormulaFormatException("You cannot have more closing parenthese than open ones.");
+                }
+            }
+            else if (t.Equals("*") || t.Equals("/") || t.Equals("+") || t.Equals("-")) { }
+            else if (double.TryParse(t, out number))
+            {
+                token[i] = number.ToString();
+            }
+            else if (ValidVariable(t)) { }
+            else
+            {
+                throw new FormulaFormatException("One of your constants is invalid.");
+            }
+
+            //Makes sure the formula is in proper writing, meaning "(A1 + 1)/2" and not something like ( + 1)/
+            if ()
+        }
 
     }
 
