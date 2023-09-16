@@ -555,7 +555,7 @@ public class Formula
     /// </summary>
     public static bool operator !=(Formula f1, Formula f2)
     {
-        if (f1 != f2)
+        if (!(f1 == f2))
         {
             return true;
         }
