@@ -97,5 +97,59 @@ namespace SS
                 return false;
             }
         }
+
+        /// <summary>
+        /// If name is null, then it will throw an null argument exception.
+        /// If name is not a valid cell format, then it will throw a name exception.
+        /// If it passes the tests, then it will return the contents of the cell.
+        /// </summary>
+        public override object GetCellContents(string name)
+        {
+            if (ReferenceEquals(name, null))
+            {
+                throw new NullReferenceException();
+            }
+            if (!IsValidName(name))
+            {
+                throw new InvalidNameException();
+            }
+            Cell? value;
+            if (cells.TryGetValue(name, out value))
+            {
+                return value.contents;
+            }
+            else
+            {
+                return "";
+            }
+        }
+
+        public override IList<string> SetCellContents(string name, Formula formula)
+        {
+            if (ReferenceEquals(formula, null) || ReferenceEquals(name, null))
+            {
+                throw new ArgumentNullException();
+            }
+            if (!IsValidName(name))
+            {
+                throw new InvalidNameException();
+            }
+
+            //temporary variable
+            IEnumerable<string> oldDependees = dg.GetDependees(name);
+
+            //replace dependents of 'name' with variables in formula
+            dg.ReplaceDependees(name, formula.GetVariables());
+
+            try
+            {
+                List<string> allDependee = new List<string>(GetCellToRecalculate(name));
+            }
+            catch
+            {
+
+            }
+
+        }
     }
 }
