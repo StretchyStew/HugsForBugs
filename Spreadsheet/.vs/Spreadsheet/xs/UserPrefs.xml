@@ -1,22 +1,22 @@
-﻿<Properties StartupConfiguration="{340808FA-8F8B-450E-AD92-95F820E89641}|Default">
+﻿<Properties>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
-  <MonoDevelop.Ide.ItemProperties.FormulaEvaluator FirstBuild="True" />
   <MonoDevelop.Ide.ItemProperties.FormulaEvaluatorTester PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.DebuggingService.Breakpoints />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MultiItemStartupConfigurations />
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="FormulaEvaluator/Class1.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="../../../Desktop/DependencyGraph/DependencyGraph.cs">
     <Files>
-      <File FileName="FormulaEvaluator/Class1.cs" Line="8" Column="1" />
+      <File FileName="../../../Desktop/FormulaEvaluatorTester/UnitTest1.cs" Line="20" Column="38" />
+      <File FileName="../../../Desktop/Spreadsheet/AbstractSpreadsheet.cs" Line="1" Column="1" />
+      <File FileName="../../../Desktop/Spreadsheet/Spreadsheet.cs" Line="1" Column="1" />
+      <File FileName="../../../Desktop/DependencyGraph/DependencyGraph.cs" Line="5" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State name="__root__">
-          <Node name="Spreadsheet">
-            <Node name="FormulaEvaluator" expanded="True">
-              <Node name="Class1.cs" selected="True" />
-            </Node>
-          </Node>
+          <Node name="Spreadsheet" selected="True" />
         </State>
       </Pad>
     </Pads>
