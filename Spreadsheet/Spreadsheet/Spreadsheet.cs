@@ -1,7 +1,11 @@
 ﻿using System;
-
-namespace SS;
-public class Spreadsheet : AbstractSpreadsheet
+namespace Spreadsheet
 {
-
+	public class Spreadsheet
+	{
+		public Spreadsheet()
+		{
+		}
+	}
 }
+
