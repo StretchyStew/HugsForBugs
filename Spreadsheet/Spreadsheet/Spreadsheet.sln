@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Formula", "..\Formula\Formu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DependencyGraph", "..\DependencyGraph\DependencyGraph.csproj", "{49BA21AF-AE66-481A-8971-3A7F5F283304}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpreadsheetTest", "..\SpreadsheetTest\SpreadsheetTest.csproj", "{9E3BB1CD-49DD-462F-88B4-D2DCBBF600FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpreadsheetTests", "..\SpreadsheetTest\SpreadsheetTests.csproj", "{9E3BB1CD-49DD-462F-88B4-D2DCBBF600FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
