@@ -76,7 +76,7 @@ namespace SS
         {
             if (ReferenceEquals(name, null))
             {
-                throw new ArgumentNullException();
+                throw new NullReferenceException();
             }
 
             if (!IsValidName(name))
@@ -135,7 +135,7 @@ namespace SS
         {
             if (ReferenceEquals(formula, null) || ReferenceEquals(name, null))
             {
-                throw new ArgumentNullException();
+                throw new NullReferenceException();
             }
             if (!IsValidName(name))
             {
