@@ -27,7 +27,7 @@ namespace SS
         private class Cell
         {
             public Object contents { get; private set; }
-            public Object value { get; private set; }
+            public Object? value { get; private set; }
             string typeOfContent;
             string typeOfValue;
 
