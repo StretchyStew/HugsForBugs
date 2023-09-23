@@ -60,7 +60,7 @@ namespace SS
         /// <summary>
         /// Enumerates the names of all non-empty cells in spreadsheet
         /// </summary>
-        public override IEnumerable<string> GetNamesOfAllNonEmptyCells()
+        public override IEnumerable<string> GetNamesOfAllNonemptyCells()
         {
             return cells.Keys;
         }
@@ -124,6 +124,13 @@ namespace SS
             }
         }
 
+        /// <summary>
+        /// If formula or name is null, throw an argument exception, also check to see if name is
+        /// valid.
+        /// Also checks to see if contents of the named cell to be 'formula' would cause a
+        /// circular dependency.
+        /// If it passes the tests, then the contents become formula.
+        /// </summary>
         public override IList<string> SetCellContents(string name, Formula formula)
         {
             if (ReferenceEquals(formula, null) || ReferenceEquals(name, null))
@@ -143,13 +150,86 @@ namespace SS
 
             try
             {
-                List<string> allDependee = new List<string>(GetCellToRecalculate(name));
+                List<string> allDependee = new List<string>(GetCellsToRecalculate(name));
+                Cell cell = new Cell(formula);
+                //if cells already contains 'name' then it will replace the key with the new value
+                if (cells.ContainsKey(name))
+                {
+                    cells[name] = cell;
+                }
+                else
+                {
+                    cells.Add(name, cell);
+                }
+                return (IList<string>)allDependee;
             }
             catch
             {
-
+                dg.ReplaceDependees(name, oldDependees);
+                throw new CircularException();
             }
 
+        }
+
+        /// <summary>
+        /// First checks for a valid name, and null. If it passes these tests, then the contents
+        /// of cell becomes a number.
+        /// </summary>
+        public override IList<string> SetCellContents(string name, double number)
+        {
+            if (!IsValidName(name))
+            {
+                throw new InvalidNameException();
+            }
+            if (ReferenceEquals(name, null))
+            {
+                throw new NullReferenceException();
+            }
+            Cell cell = new Cell(number);
+            if (cells.ContainsKey(name))
+            {
+                cells[name] = cell;
+            }
+            else
+            {
+                cells.Add(name, cell);
+            }
+
+            dg.ReplaceDependees(name, new List<string>());
+
+            List<string> allDependee = new List<string>(GetCellsToRecalculate(name));
+            return (IList<string>)allDependee;
+        }
+
+        /// <summary>
+        /// If 'text' or 'name' is null, or 'name' is not a valid name, then throw an appropriate
+        /// error. If it passes, then the conetents of the cell becomes 'text'.
+        /// </summary>
+        public override IList<string> SetCellContents(string name, string text)
+        {
+            if (ReferenceEquals(text, null) || ReferenceEquals(name, null))
+            {
+                throw new NullReferenceException();
+            }
+            if (!IsValidName(name))
+            {
+                throw new InvalidNameException();
+            }
+
+            Cell cell = new Cell(text);
+            if (cells.ContainsKey(name))
+            {
+                cells[name] = cell;
+            }
+            else
+            {
+                cells.Add(name, cell);
+            }
+
+            dg.ReplaceDependees(name, new List<string>());
+
+            List<string> allDependee = new List<string>(GetCellsToRecalculate(name));
+            return (IList<string>)allDependee;
         }
     }
 }
