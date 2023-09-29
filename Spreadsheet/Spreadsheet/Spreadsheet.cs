@@ -99,6 +99,77 @@ namespace SS
             Changed = false;
         }
 
+        /// <summary>
+        /// This code will hopefully read from a Json document
+        /// </summary>
+        private string ReadFile(string filename, bool only_get_version)
+        {
+            if (ReferenceEquals(filename, null))
+                throw new SpreadsheetReadWriteException("The filename cannot be null");
+
+            if (filename.Equals(""))
+                throw new SpreadsheetReadWriteException("The filename cannot be empty");
+
+            try
+            {
+                string name = "";       // the name of a given cell
+                string contents = "";   // the contents of the corresponding cell
+
+                string parsedVersion = null;  // Variable to store the parsed version
+
+                using (FileStream fs = new FileStream(filename, FileMode.Open))
+                {
+                    JsonDocument doc = JsonDocument.Parse(fs);
+
+                    foreach (JsonProperty element in doc.RootElement.EnumerateObject())
+                    {
+                        switch (element.Name)
+                        {
+                            case "version":
+                                parsedVersion = element.Value.GetString();
+                                if (only_get_version)
+                                    return parsedVersion;
+                                // Note: Do not assign to Version directly, since it's read-only
+                                break;
+                            case "cells":
+                                foreach (JsonElement cellElement in element.Value.EnumerateArray())
+                                {
+                                    foreach (JsonProperty cellProperty in cellElement.EnumerateObject())
+                                    {
+                                        switch (cellProperty.Name)
+                                        {
+                                            case "name":
+                                                name = cellProperty.Value.GetString();
+                                                break;
+                                            case "contents":
+                                                contents = cellProperty.Value.GetString();
+                                                SetContentsOfCell(name, contents);
+                                                break;
+                                        }
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+            catch (JsonException e)
+            {
+                throw new SpreadsheetReadWriteException(e.ToString());
+            }
+            catch (IOException e)
+            {
+                throw new SpreadsheetReadWriteException(e.ToString());
+            }
+
+            return Version;
+        }
+
+        /// <summary>
+        /// If 'name' is 'null' or invalid, then it will throw an InvalidNameException, if it does
+        /// exist, then it will return the value of the corresponding cell. Otherwise, it will
+        /// return an empty string.
+        /// </summary>
         public override object GetCellValue(string name)
         {
             //If the name is 'null' or invalid, then it will throw an InvalidNameException
@@ -136,7 +207,7 @@ namespace SS
             {
                 contents = str;
                 value = str;
-                typeOfContent = "string";
+                typeOfContent = str.GetType().ToString();
                 typeOfValue = typeOfContent;
             }
 
@@ -145,16 +216,54 @@ namespace SS
             {
                 contents = dbl;
                 value = dbl;
-                typeOfContent = "double";
+                typeOfContent = dbl.GetType().ToString();
                 typeOfValue = typeOfContent;
             }
 
             //Constructor for Formulas
-            public Cell(Formula formula)
+            public Cell(Formula formula, Func<string, double> lookup)
             {
                 contents = formula;
-                typeOfContent = "formula";
+                typeOfContent = formula.GetType().ToString();
+                value = contents;
+                typeOfValue = typeOfContent;
             }
+
+            //Added for PS5
+            /// <summary>
+            /// Helper method to re-evaluate formulas.
+            /// </summary>
+            /// <param name="lookup"></param>
+            public void ReEvaluate(Func<string, double> lookup)
+            {
+                if (typeOfContent.Equals("SpreadsheetUtilities.Formula"))
+                {
+                    Formula same = (Formula)contents;
+                    value = same.Evaluate(lookup);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Helper method for evaluating functions. It will return the value that is
+        /// related to 'str' or the cell name
+        /// </summary>
+        private double LookupValue(string str)
+        {
+            Cell? cell;
+
+            if (cells.TryGetValue(str, out cell)){
+                if (cell.value is double)
+                {
+                    return (double)cell.value;
+                }
+                else
+                {
+                    throw new ArgumentException();
+                }
+            }
+            else
+                throw new ArgumentException();
         }
 
         /// <summary>
@@ -199,6 +308,71 @@ namespace SS
         }
 
         /// <summary>
+        /// First checks for null and empty, if it is then it will throw appropriate exceptions.
+        /// Then it will process the content based on type,
+        /// If it is empty, then it will set accordingly
+        /// If it is a double, it converts and sets the cell contents as a numeric value
+        /// If it is a formula, it creates a Formula object and sets the cell contents accordingly
+        /// Otherwise it will just treat it as a string
+        /// </summary>
+        public override IList<string> SetContentsOfCell(string name, string content)
+        {
+            //Both 'content' and 'name' cannot be null, if so, then throw an NullReferenceException
+            if (ReferenceEquals(content, null) || ReferenceEquals(name, null))
+            {
+                throw new NullReferenceException();
+            }
+
+            //If name is empty, then throw an invalid name exception
+            if (name.Equals(""))
+            {
+                throw new InvalidNameException();
+            }
+
+            //holds the list of dependees
+            HashSet<string> allDependents;
+
+            //If content is a double then it will be used
+            double result;
+
+            //If it is empty, then just add it to cell
+            if (content.Equals(""))
+            {
+                allDependents = new HashSet<string>(SetCellContents(name, content));
+            }
+            //Checks to see if it is a double, if so then it will set the cell to the contents
+            else if (double.TryParse(content, out result))
+            {
+                allDependents = new HashSet<string>(SetCellContents(name, result));
+            }
+            //Checks to see if 'content' is a formula
+            else if (content.Substring(0, 1).Equals("="))
+            {
+                string formulaString = content.Substring(1, content.Length - 1);
+                Formula formula = new Formula(formulaString);
+                allDependents = new HashSet<string>(SetCellContents(name, formula));
+            }
+            //At the end, it should just be a string, so just save it to cell
+            else
+            {
+                allDependents = new HashSet<string>(SetCellContents(name, content));
+            }
+
+            Changed = true;
+
+            foreach (string s in allDependents)
+            {
+                Cell cellValue;
+                if(cells.TryGetValue(s, out cellValue))
+                {
+                    cellValue.ReEvaluate(LookupValue);
+                }
+            }
+
+            return (IList<string>)allDependents;
+        }
+
+        /// <summary>
         /// If name is null, then it will throw an null argument exception.
         /// If name is not a valid cell format, then it will throw a name exception.
         /// If it passes the tests, then it will return the contents of the cell.
@@ -231,17 +405,8 @@ namespace SS
         /// circular dependency.
         /// If it passes the tests, then the contents become formula.
         /// </summary>
-        public override IList<string> SetCellContents(string name, Formula formula)
+        protected override IList<string> SetCellContents(string name, Formula formula)
         {
-            if (ReferenceEquals(formula, null) || ReferenceEquals(name, null))
-            {
-                throw new NullReferenceException();
-            }
-            if (!IsValidName(name))
-            {
-                throw new InvalidNameException();
-            }
-
             //temporary variable
             IEnumerable<string> oldDependees = dg.GetDependees(name);
 
@@ -251,7 +416,7 @@ namespace SS
             try
             {
                 List<string> allDependee = new List<string>(GetCellsToRecalculate(name));
-                Cell cell = new Cell(formula);
+                Cell cell = new Cell(formula, LookupValue);
                 //if cells already contains 'name' then it will replace the key with the new value
                 if (cells.ContainsKey(name))
                 {
@@ -268,24 +433,18 @@ namespace SS
                 dg.ReplaceDependees(name, oldDependees);
                 throw new CircularException();
             }
-
         }
 
         /// <summary>
         /// First checks for a valid name, and null. If it passes these tests, then the contents
         /// of cell becomes a number.
         /// </summary>
-        public override IList<string> SetCellContents(string name, double number)
+        protected override IList<string> SetCellContents(string name, double number)
         {
-            if (!IsValidName(name))
-            {
-                throw new InvalidNameException();
-            }
-            if (ReferenceEquals(name, null))
-            {
-                throw new NullReferenceException();
-            }
+            //Creates a cell
             Cell cell = new Cell(number);
+
+            //If it contains 'name,' then it will replace the key with the new value
             if (cells.ContainsKey(name))
             {
                 cells[name] = cell;
@@ -305,17 +464,9 @@ namespace SS
         /// If 'text' or 'name' is null, or 'name' is not a valid name, then throw an appropriate
         /// error. If it passes, then the conetents of the cell becomes 'text'.
         /// </summary>
-        public override IList<string> SetCellContents(string name, string text)
+        protected override IList<string> SetCellContents(string name, string text)
         {
-            if (ReferenceEquals(text, null) || ReferenceEquals(name, null))
-            {
-                throw new NullReferenceException();
-            }
-            if (!IsValidName(name))
-            {
-                throw new InvalidNameException();
-            }
-
+            //Creates a cell
             Cell cell = new Cell(text);
             if (cells.ContainsKey(name))
             {
