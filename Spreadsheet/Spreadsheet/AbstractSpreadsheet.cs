@@ -2,13 +2,15 @@
 // Last updated: September 2023 (small tweak to API)
 
 using SpreadsheetUtilities;
+using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace SS;
 
 /// <summary>
 /// Thrown to indicate that a change to a cell will cause a circular dependency.
-/// </summary>
+/// </summary> 
 public class CircularException : Exception
 {
 }

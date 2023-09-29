@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using SpreadsheetUtilities;
+using System.Text.Json;
 
 namespace SS
 {
@@ -8,18 +9,117 @@ namespace SS
     {
         Dictionary<string, Cell> cells;
         DependencyGraph dg;
+        private bool change;
 
 
         /// <summary>
         /// Constructor that creates a new spreadsheet
         /// </summary>
-        public Spreadsheet()
+        public Spreadsheet() : base("default")
         {
             //initialize variables
             cells = new Dictionary<string, Cell>();
             dg = new DependencyGraph();
+            change = false;
         }
 
+        //Added for PS5
+        public bool Changed
+        {
+            get
+            {
+                return change;
+            }
+            protected set
+            {
+                change = value;
+            }
+        }
+
+        /// <summary>
+        /// Added for PS5
+        /// This will write the contents of the spreadsheet to a file using Json format.
+        /// </summary>
+        public override void Save(string filename)
+        {
+            if (string.IsNullOrEmpty(filename))
+            {
+                throw new SpreadsheetReadWriteException("Filename cannot be null or empty.");
+            }
+
+            try
+            {
+                //Creates a list to hold cell data
+                List<Dictionary<string, object>> cellDataList = new List<Dictionary<string, object>>();
+
+                foreach (string cell in cells.Keys)
+                {
+                    //Creates a dictionary to represent a cell
+                    Dictionary<string, object> cellData = new Dictionary<string, object>
+                    {
+                        { "name", cell }
+                    };
+
+                    //Checks the type of contents in the cell
+                    if (cells[cell].contents is double)
+                    {
+                        cellData["contents"] = cells[cell].contents;
+                    }
+                    else if (cells[cell].contents is Formula)
+                    {
+                        cellData["contents"] = "=" + cells[cell].contents.ToString();
+                    }
+                    else
+                    {
+                        cellData["contents"] = (string)cells[cell].contents;
+                    }
+
+                    //Adds the cell data to the list
+                    cellDataList.Add(cellData);
+                }
+
+                //Creates an anonymous type to represent the JSON structure
+                var jsonData = new
+                {
+                    version = Version,
+                    cells = cellDataList
+                };
+
+                //Serialize the data to JSON
+                string json = JsonSerializer.Serialize(jsonData);
+
+                //Write the JSON string to the file
+                File.WriteAllText(filename, json);
+            }
+            catch (Exception e)
+            {
+                throw new SpreadsheetReadWriteException(e.ToString());
+            }
+
+            Changed = false;
+        }
+
+        public override object GetCellValue(string name)
+        {
+            //If the name is 'null' or invalid, then it will throw an InvalidNameException
+            if (ReferenceEquals(name, null) || !IsValidName(name))
+            {
+                throw new InvalidNameException();
+            }
+
+            //Value of Name
+            Cell cell;
+
+            //Returns the value of cell
+            if (cells.TryGetValue(name, out cell))
+            {
+                return cell.value;
+            }
+            else
+            {
+                return "";
+            }
+        }
 
         /// <summary>
         /// Creates a cell object
