@@ -34,6 +34,16 @@ namespace SS
             Changed = false;
         }
 
+        public Spreadsheet(string filepath, Func<string, bool> isValid, Func<string, string> normalize, string version)
+            : base(version)
+        {
+            // initialize spreadsheet variables
+            cells = new Dictionary<string, Cell>();
+            dg = new DependencyGraph();
+            // initialize changed to false
+            Changed = false;
+        }
+
         //Added for PS5
         public new bool Changed
         {
