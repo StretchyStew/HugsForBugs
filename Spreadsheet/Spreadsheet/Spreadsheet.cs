@@ -23,6 +23,11 @@ namespace SS
             change = false;
         }
 
+        public string GetSavedVersion(string filename)
+        {
+            return ReadFile(filename, true);
+        }
+
         //Added for PS5
         public bool Changed
         {
@@ -206,7 +211,7 @@ namespace SS
             public Cell(string str)
             {
                 contents = str;
-                value = str;
+                value = contents;
                 typeOfContent = str.GetType().ToString();
                 typeOfValue = typeOfContent;
             }
@@ -215,7 +220,7 @@ namespace SS
             public Cell(double dbl)
             {
                 contents = dbl;
-                value = dbl;
+                value = contents;
                 typeOfContent = dbl.GetType().ToString();
                 typeOfValue = typeOfContent;
             }
@@ -224,9 +229,9 @@ namespace SS
             public Cell(Formula formula, Func<string, double> lookup)
             {
                 contents = formula;
+                value = formula.Evaluate(lookup);
                 typeOfContent = formula.GetType().ToString();
-                value = contents;
-                typeOfValue = typeOfContent;
+                typeOfValue = value.GetType().ToString();
             }
 
             //Added for PS5
@@ -330,7 +335,7 @@ namespace SS
             }
 
             //holds the list of dependees
-            HashSet<string> allDependents;
+            List<string> allDependents;
 
             //If content is a double then it will be used
             double result;
@@ -338,24 +343,24 @@ namespace SS
             //If it is empty, then just add it to cell
             if (content.Equals(""))
             {
-                allDependents = new HashSet<string>(SetCellContents(name, content));
+                allDependents = new List<string>(SetCellContents(name, content));
             }
             //Checks to see if it is a double, if so then it will set the cell to the contents
             else if (double.TryParse(content, out result))
             {
-                allDependents = new HashSet<string>(SetCellContents(name, result));
+                allDependents = new List<string>(SetCellContents(name, result));
             }
             //Checks to see if 'content' is a formula
             else if (content.Substring(0, 1).Equals("="))
             {
                 string formulaString = content.Substring(1, content.Length - 1);
                 Formula formula = new Formula(formulaString);
-                allDependents = new HashSet<string>(SetCellContents(name, formula));
+                allDependents = new List<string>(SetCellContents(name, formula));
             }
             //At the end, it should just be a string, so just save it to cell
             else
             {
-                allDependents = new HashSet<string>(SetCellContents(name, content));
+                allDependents = new List<string>(SetCellContents(name, content));
             }
 
             Changed = true;
