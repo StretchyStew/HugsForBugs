@@ -23,11 +23,6 @@ namespace SS
             changed = false;
         }
 
-        public string GetSavedVersion(string filename)
-        {
-            return ReadFile(filename, true);
-        }
-
         //Added for PS5
         public new bool Changed
         {
@@ -105,72 +100,6 @@ namespace SS
         }
 
         /// <summary>
-        /// This code will hopefully read from a Json document
-        /// </summary>
-        private string ReadFile(string filename, bool only_get_version)
-        {
-            if (ReferenceEquals(filename, null))
-                throw new SpreadsheetReadWriteException("The filename cannot be null");
-
-            if (filename.Equals(""))
-                throw new SpreadsheetReadWriteException("The filename cannot be empty");
-
-            try
-            {
-                string name = "";       // the name of a given cell
-                string contents = "";   // the contents of the corresponding cell
-
-                string? parsedVersion = null;  // Variable to store the parsed version
-
-                using (FileStream fs = new FileStream(filename, FileMode.Open))
-                {
-                    JsonDocument doc = JsonDocument.Parse(fs);
-
-                    foreach (JsonProperty element in doc.RootElement.EnumerateObject())
-                    {
-                        switch (element.Name)
-                        {
-                            case "version":
-                                parsedVersion = element.Value.GetString();
-                                if (only_get_version)
-                                    return parsedVersion;
-                                // Note: Do not assign to Version directly, since it's read-only
-                                break;
-                            case "cells":
-                                foreach (JsonElement cellElement in element.Value.EnumerateArray())
-                                {
-                                    foreach (JsonProperty cellProperty in cellElement.EnumerateObject())
-                                    {
-                                        switch (cellProperty.Name)
-                                        {
-                                            case "name":
-                                                name = cellProperty.Value.GetString();
-                                                break;
-                                            case "contents":
-                                                contents = cellProperty.Value.GetString();
-                                                SetContentsOfCell(name, contents);
-                                                break;
-                                        }
-                                    }
-                                }
-                                break;
-                        }
-                    }
-                }
-            }
-            catch (JsonException e)
-            {
-                throw new SpreadsheetReadWriteException(e.ToString());
-            }
-            catch (IOException e)
-            {
-                throw new SpreadsheetReadWriteException(e.ToString());
-            }
-
-            return Version;
-        }
-
-        /// <summary>
         /// If 'name' is 'null' or invalid, then it will throw an InvalidNameException, if it does
         /// exist, then it will return the value of the corresponding cell. Otherwise, it will
         /// return an empty string.
@@ -183,8 +112,9 @@ namespace SS
                 throw new InvalidNameException();
             }
 
+   
             //Value of Name
-            Cell cell;
+            Cell? cell;
 
             //Returns the value of cell
             if (cells.TryGetValue(name, out cell))
@@ -203,9 +133,9 @@ namespace SS
         private class Cell
         {
             public Object contents { get; private set; }
-            public Object? value { get; private set; }
+            public Object value { get; private set; }
             string typeOfContent;
-            string? typeOfValue;
+            string typeOfValue;
 
             // Constructor for Strings
             public Cell(string str)
@@ -367,7 +297,7 @@ namespace SS
 
             foreach (string s in allDependents)
             {
-                Cell cellValue;
+                Cell? cellValue;
                 if(cells.TryGetValue(s, out cellValue))
                 {
                     cellValue.ReEvaluate(LookupValue);
