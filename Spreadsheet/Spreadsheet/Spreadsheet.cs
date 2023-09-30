@@ -120,7 +120,7 @@ namespace SS
                 string name = "";       // the name of a given cell
                 string contents = "";   // the contents of the corresponding cell
 
-                string parsedVersion = null;  // Variable to store the parsed version
+                string? parsedVersion = null;  // Variable to store the parsed version
 
                 using (FileStream fs = new FileStream(filename, FileMode.Open))
                 {
