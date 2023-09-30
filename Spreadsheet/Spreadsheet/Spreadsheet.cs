@@ -9,7 +9,7 @@ namespace SS
     {
         Dictionary<string, Cell> cells;
         DependencyGraph dg;
-        private bool change;
+        private bool changed
 
 
         /// <summary>
@@ -20,7 +20,7 @@ namespace SS
             //initialize variables
             cells = new Dictionary<string, Cell>();
             dg = new DependencyGraph();
-            change = false;
+            changed = false;
         }
 
         public string GetSavedVersion(string filename)
@@ -29,15 +29,15 @@ namespace SS
         }
 
         //Added for PS5
-        public bool Changed
+        public new bool Changed
         {
             get
             {
-                return change;
+                return changed;
             }
             protected set
             {
-                change = value;
+                changed = value;
             }
         }
 
