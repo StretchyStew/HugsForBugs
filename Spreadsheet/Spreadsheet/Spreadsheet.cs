@@ -9,7 +9,7 @@ namespace SS
     {
         Dictionary<string, Cell> cells;
         DependencyGraph dg;
-        private bool changed
+        private bool changed;
 
 
         /// <summary>
